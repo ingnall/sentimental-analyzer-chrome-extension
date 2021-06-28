@@ -1,24 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+// Privacy Policy URL to use in developer.facebook for login with facebook
+// https://www.termsfeed.com/live/9d77b86d-ddbd-46f7-8830-66ef2d671063
+
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import Login from "./components/Login";
+import Main from "./components/Main";
+
+import './assets/css/App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <MemoryRouter>
+      <div className="App">
+        <header className="App-header">
+          <div>Sentimental Analyzer</div>
+        </header>
+        <Routes>
+          <Route exact path="/" element={<Login />} />
+          <Route path="/main" element={<Main />} />
+        </Routes>
+      </div>
+    </MemoryRouter >
   );
 }
 

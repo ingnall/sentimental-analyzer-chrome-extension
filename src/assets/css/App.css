@@ -1,0 +1,15 @@
+.App {
+  /* border: solid 1px #5664d2; */
+  width: 500px;
+}
+
+.App-header {
+  background-color: #5664d2;
+  height: 40px;
+  color: white;
+}
+
+.App-header > div {
+  padding-left: 15px;
+  font-size: x-large;
+}

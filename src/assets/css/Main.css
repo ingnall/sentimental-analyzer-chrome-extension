@@ -1,0 +1,105 @@
+.svg-loader {
+  display: flex;
+  position: relative;
+  align-content: space-around;
+  justify-content: center;
+  margin: 2% 0;
+}
+.loader-svg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  fill: none;
+  stroke-width: 12px;
+  stroke-linecap: round;
+  stroke: rgb(255, 175, 0);
+}
+.loader-svg.bg {
+  stroke-width: 12px;
+  stroke: rgb(228, 223, 206);
+}
+
+.animate {
+  stroke-dasharray: 242.6;
+  animation: fill-animation 1s cubic-bezier(1, 1, 1, 1) 0s infinite;
+}
+
+@keyframes fill-animation {
+  0% {
+    stroke-dasharray: 40 242.6;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 141.3;
+    stroke-dashoffset: 141.3;
+  }
+  100% {
+    stroke-dasharray: 40 242.6;
+    stroke-dashoffset: 282.6;
+  }
+}
+
+.container {
+  margin-top: 30px;
+}
+
+.img-positive,
+.img-neutral,
+.img-negative {
+  width: auto;
+}
+
+.txt-positive,
+.percentage-positive,
+.txt-neutral,
+.percentage-neutral,
+.txt-negative,
+.percentage-negative {
+  text-align: center;
+  font-weight: 500;
+}
+
+.img-positive {
+  height: 142px;
+}
+.percentage-positive {
+  color: #43a047;
+}
+
+.img-neutral {
+  height: 130px;
+}
+.percentage-neutral {
+  color: #fb8c00;
+}
+
+.img-negative {
+  height: 155px;
+}
+.percentage-negative {
+  color: #e53935;
+}
+
+.Main-footer {
+  background-color: #5664d2;
+  margin-top: 20px;
+  padding: 5px 0 5px 5px;
+  /* height: 40px; */
+  color: white;
+}
+
+.Main-footer button{
+  background: transparent;
+  border: none;
+  color: white;
+  text-transform: capitalize;
+  text-decoration: underline;
+  font-size: large;
+  font-weight: 600;
+}
+
+.Main-footer button:hover{
+  color: #dee2ff;
+}
