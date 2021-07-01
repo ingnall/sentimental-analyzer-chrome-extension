@@ -1,0 +1,15 @@
+{
+  "name": "Sentiment Analyzer",
+  "version": "1.0.0",
+  "manifest_version": 2,
+  "description": "Analyze sentiments for a facebook post.",
+  "browser_action": {
+    "default_popup": "./popup.html"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "content_security_policy": "script-src 'self' https://unpkg.com/ https://connect.facebook.net/; object-src 'self'"
+}

@@ -1,182 +1,148 @@
+/* eslint-disable no-undef */
+import { Doughnut } from 'react-chartjs-2';
 import axios from "axios";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
     Container,
     Row,
-    Col
+    Col,
+    Card
 } from "react-bootstrap";
-import Positive from "../assets/images/Positive.png";
-import Neutral from "../assets/images/Neutral.png";
-import Negative from "../assets/images/Negative.png";
 
 import "../assets/css/Main.css";
 
 const Main = () => {
-    const navigate = useNavigate();
-    const [error, setError] = useState(false);
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [analyze, setAnalyze] = useState(false);
     const [postUrl, setPostUrl] = useState('');
-    const [positive, setPositive] = useState(0.333);
-    const [neutral, setNeutral] = useState(0.333);
-    const [negative, setNegative] = useState(0.333);
-    // eslint-disable-next-line no-unused-vars
-    // const [compound, setCompound] = useState(0.333);
+    const [positive, setPositive] = useState(0.3333);
+    const [neutral, setNeutral] = useState(0.3333);
+    const [negative, setNegative] = useState(0.3333);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/user/find', {
-            headers: {
-                'Access-Control-Allow-Origin': true,
-                'x-access-token': localStorage.getItem('token')
-            },
-            params: {
-                userId: localStorage.getItem('userId'),
-                loginWithFB: localStorage.getItem('loginWithFB')
+        chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
+            var URL = tabs[0].url;
+            if (URL.includes('https://m.facebook.com/')) {
+                setPostUrl(URL);
+                handleAnalyze(URL);
             }
-        }).then((res) => {
-            console.log(res.data);
-            // eslint-disable-next-line no-undef
-            chrome.tabs.query({ active: true, lastFocusedWindow: true }, tabs => {
-                var URL = tabs[0].url;
-                var domain = tabs[0].url.hostname;
-                console.log(domain);
-                if (URL.includes('https://m.facebook.com/')) {
-                    setPostUrl(URL);
-                    handleAnalyze(URL);
-                }
-                else if (URL.includes('https://www.facebook.com/')) {
-                    URL = URL.replace('www.', 'm.');
-                    setPostUrl(URL);
-                    handleAnalyze(URL);
-                }
-            });
-
-        }).catch((err) => {
-            if (err.response.status === 400 || err.response.status === 401 || err.response.status === 403) {
-                console.log(err.response.message);
-                navigate('/login', { replace: true });
+            else if (URL.includes('https://www.facebook.com/')) {
+                URL = URL.replace('www.', 'm.');
+                setPostUrl(URL);
+                handleAnalyze(URL);
             } else {
-                console.log(err);
+                setError('This is not a Facebook page');
             }
         });
+
+        // var URL = window.location.href;
+        // if (URL.includes('https://m.facebook.com/')) {
+        //     setPostUrl(URL);
+        //     handleAnalyze(URL);
+        // }
+        // else if (URL.includes('https://www.facebook.com/')) {
+        //     URL = URL.replace('www.', 'm.');
+        //     setPostUrl(URL);
+        //     handleAnalyze(URL);
+        // } else {
+        //     setError('This is not a Facebook page');
+        // }
     }, []);
 
     const handleAnalyze = (postUrl) => {
+        console.log(postUrl);
         if (postUrl) {
-            setError(false);
+            setError('');
             setLoading(true);
             setAnalyze(true);
 
-            axios.get('http://localhost:5000/api/posts/find', {
-                headers: {
-                    'Access-Control-Allow-Origin': true,
-                    'x-access-token': localStorage.getItem('token')
-                },
-                params: {
-                    id: postUrl,
-                    loginWithFB: localStorage.getItem('loginWithFB')
-                }
-            })
-                .then((findPostResponse) => {
-                    console.log(findPostResponse.data);
-
-                    const totalComments = findPostResponse.data.comments.length;
-                    let sumPositive = 0;
-                    let sumNeutral = 0;
-                    let sumNegative = 0;
-                    // let sumCompound = 0;
-                    for (let i = 0; i < findPostResponse.data.comments.length; i++) {
-                        sumPositive += findPostResponse.data.comments[i].object.pos;
-                        sumNeutral += findPostResponse.data.comments[i].object.neu;
-                        sumNegative += findPostResponse.data.comments[i].object.neg;
+            axios.post(`http://localhost:8000/?data=${postUrl}`)
+                .then((djangoRes) => {
+                    console.log(djangoRes);
+                    const objects = Object.values(djangoRes.data);
+                    const array = Object.keys(djangoRes.data).map((key, index) => (
+                        { name: key, object: objects[index] }
+                    ));
+                    console.log(array);
+                    if (!array.length) {
+                        setError('URL is not correct OR post does not have any comment');
+                        setLoading(false);
+                    } else {
+                        const totalComments = array.length;
+                        let sumPositive = 0;
+                        let sumNeutral = 0;
+                        let sumNegative = 0;
+                        for (let i = 0; i < array.length; i++) {
+                            sumPositive += array[i].object.pos;
+                            sumNeutral += array[i].object.neu;
+                            sumNegative += array[i].object.neg;
+                        }
+                        setPositive(sumPositive / totalComments);
+                        setNeutral(sumNeutral / totalComments);
+                        setNegative(sumNegative / totalComments);
+                        setLoading(false);
+                        setAnalyze(false);
                     }
-                    setPositive(sumPositive / totalComments);
-                    setNeutral(sumNeutral / totalComments);
-                    setNegative(sumNegative / totalComments);
+                })
+                .catch((err) => {
+                    console.log(err.response);
+                    setError('Server error');
                     setLoading(false);
                     setAnalyze(false);
-                })
-                .catch((findPostError) => {
-                    if (findPostError.response.status === 401 || findPostError.response.status === 403) {
-                        console.log(findPostError.response.message);
-                        setLoading(false);
-                        navigate('/login', { replace: true });
-                    } if (findPostError.response.status === 404) {
-                        console.log(findPostError.response.message);
-
-                        axios.post(`http://localhost:8000/?data=${postUrl}`)
-                            .then((djangoRes) => {
-                                console.log(djangoRes);
-                                const objects = Object.values(djangoRes.data);
-                                const array = Object.keys(djangoRes.data).map((key, index) => (
-                                    { name: key, object: objects[index] }
-                                ));
-                                console.log(array);
-                                if (!array.length) {
-                                    setError(true);
-                                    setLoading(false);
-                                } else {
-                                    const totalComments = array.length;
-                                    let sumPositive = 0;
-                                    let sumNeutral = 0;
-                                    let sumNegative = 0;
-                                    for (let i = 0; i < array.length; i++) {
-                                        sumPositive += array[i].object.pos;
-                                        sumNeutral += array[i].object.neu;
-                                        sumNegative += array[i].object.neg;
-                                    }
-                                    setPositive(sumPositive / totalComments);
-                                    setNeutral(sumNeutral / totalComments);
-                                    setNegative(sumNegative / totalComments);
-                                    setLoading(false);
-                                    setAnalyze(false);
-
-                                    // Save result in MongoDB
-                                    axios.post('http://localhost:5000/api/posts/save', {
-                                        id: postUrl,
-                                        comments: array,
-                                        loginWithFB: localStorage.getItem('loginWithFB')
-                                    }, {
-                                        headers: {
-                                            'Access-Control-Allow-Origin': true,
-                                            'x-access-token': localStorage.getItem('token'),
-                                        }
-                                    })
-                                        .then((nodeRes) => {
-                                            console.log(nodeRes.data);
-                                        })
-                                        .catch((err) => {
-                                            console.log(err.response);
-                                            if (err.response.status === 400) {
-                                                console.log(err.response.message);
-                                            } if (err.response.status === 401 || err.response.status === 403) {
-                                                console.log(err.response.message);
-                                                navigate('/login', { replace: true });
-                                            }
-                                        });
-                                }
-                            })
-                            .catch((err) => {
-                                console.log(err.response);
-                                setError(true);
-                                setLoading(false);
-                                setAnalyze(false);
-                            });
-                    }
                 });
         }
     };
 
     const moreResult = () => {
         navigator.clipboard.writeText(postUrl);
-        // eslint-disable-next-line no-undef
         chrome.tabs.getCurrent(function (tab) {
             var URL = "https://localhost:3000/app/analyzer";
-            // eslint-disable-next-line no-undef
+
             chrome.tabs.create({ "url": URL });
         });
+
+        // window.location.href = "https://localhost:3000/app/analyzer";
     }
+
+    const data = {
+        datasets: [
+            {
+                data: [(positive * 100).toFixed(2), (negative * 100).toFixed(2), (neutral * 100).toFixed(2)],
+                backgroundColor: [
+                    '#43a047',
+                    '#e53935',
+                    '#fb8c00'
+                ],
+                borderWidth: 5,
+                borderColor: '#fff',
+                hoverBorderColor: '#fff'
+            }
+        ],
+        labels: ['Positive', 'Negative', 'Neutral']
+    };
+
+    const options = {
+        animation: true,
+        cutoutPercentage: 80,
+        layout: { padding: 0 },
+        legend: {
+            display: false
+        },
+        maintainAspectRatio: false,
+        responsive: true,
+        tooltips: {
+            backgroundColor: '#fff',
+            bodyFontColor: '#6b778c',
+            borderColor: 'rgba(0, 0, 0, 0.12)',
+            borderWidth: 1,
+            enabled: true,
+            footerFontColor: '#6b778c',
+            intersect: false,
+            mode: 'index',
+            titleFontColor: '#172b4d'
+        }
+    };
 
     return (
         <>
@@ -197,7 +163,7 @@ const Main = () => {
                         Please wait
                     </div>
                     <div style={{ marginTop: '5px' }}>
-                        <svg className="svg-containerr" height="100" width="100" viewBox="-2 -2 105 105">
+                        <svg className="svg-containerr" height="140" width="140" viewBox="-2 -2 105 105">
                             <circle className="loader-svg bg" cx="50" cy="50" r="45" />
                             <circle className="loader-svg animate" cx="50" cy="50" r="45" />
                         </svg>
@@ -205,68 +171,94 @@ const Main = () => {
                 </div>
             </div>
 
-            <Container style={{ display: !loading && !analyze ? 'block' : 'none' }}>
-                <Row>
-                    <Col>
-                        <div>
-                            <img
-                                className="img-positive"
-                                src={Positive}
-                                alt="Positive sentiment"
-                            />
-                        </div>
-                    </Col>
-                    <Col>
-                        <div>
-                            <img
-                                className="img-neutral"
-                                src={Neutral}
-                                alt="Neutral sentiment"
-                            />
-                        </div>
-                    </Col>
-                    <Col>
-                        <div>
-                            <img
-                                className="img-negative"
-                                src={Negative}
-                                alt="Negative sentiment"
-                            />
-                        </div>
-                    </Col>
-                </Row>
+            <Container style={{ display: !loading && !analyze && !error.length ? 'block' : 'none' }}>
+                <Card>
+                    <Row>
+                        <Col>
+                            <h2>Satisfaction</h2>
+                        </Col>
+                    </Row>
 
-                <Row>
-                    <Col>
-                        <div className="txt-positive">Positive</div>
-                        <div className="percentage-positive">{(positive * 100).toFixed(1)}%</div>
-                    </Col>
-                    <Col>
-                        <div className="txt-neutral">Neutral</div>
-                        <div className="percentage-neutral">{(neutral * 100).toFixed(1)}%</div>
-                    </Col>
-                    <Col>
-                        <div className="txt-negative">Negative</div>
-                        <div className="percentage-negative">{(negative * 100).toFixed(1)}%</div>
-                    </Col>
-                </Row>
+                    <Row>
+                        <Col xs={8}>
+                            <Doughnut
+                                data={data}
+                                options={options}
+                            />
+                        </Col>
+                        <Col xs={4}>
+                            <Row>
+                                <Col xs={2} style={{ padding: 0 }}>
+                                    <div className="dot positive"></div>
+                                </Col>
+                                <Col xs={10} style={{ padding: 0 }}>
+                                    <div className="percentage">{(positive * 100).toFixed(2)}%</div>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col xs={2} style={{ padding: 0 }}>
+                                </Col>
+                                <Col xs={10} style={{ padding: 0 }}>
+                                    <div className="txt">Positive</div>
+                                </Col>
+                            </Row>
+                            <Row style={{ marginTop: '10px' }}>
+                                <Col xs={2} style={{ padding: 0 }}>
+                                    <div className="dot neutral"></div>
+                                </Col>
+                                <Col xs={10} style={{ padding: 0 }}>
+                                    <div className="percentage">{(neutral * 100).toFixed(2)}%</div>
+                                </Col>
+                            </Row>
+                            <Row style={{ marginBottom: '10px' }}>
+                                <Col xs={2} style={{ padding: 0 }}>
+                                </Col>
+                                <Col xs={10} style={{ padding: 0 }}>
+                                    <div className="txt">Neutral</div>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col xs={2} style={{ padding: 0 }}>
+                                    <div className="dot negative"></div>
+                                </Col>
+                                <Col xs={10} style={{ padding: 0 }}>
+                                    <div className="percentage">{(negative * 100).toFixed(2)}%</div>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col xs={2} style={{ padding: 0 }}>
+                                </Col>
+                                <Col xs={10} style={{ padding: 0 }}>
+                                    <div className="txt">Negative</div>
+                                </Col>
+                            </Row>
+                        </Col>
+                    </Row>
+
+                    <Row
+                        className="view-more"
+                        style={{
+                            display: (!error && !loading && !analyze) ? 'block' : 'none'
+                        }}
+                    >
+                        <Col style={{ padding: 0 }}>
+                            <button onClick={moreResult}>View more</button>
+                        </Col>
+                    </Row>
+                </Card>
             </Container>
+
             <div
                 style={{
-                    display: (!loading && error) ? 'block' : 'none',
-                    textAlign: 'center'
+                    display: !loading && error.length ? 'block' : 'none',
+                    textAlign: 'center',
+                    marginTop: '15px'
                 }}
             >
-                URL is not correct OR post doesn&#39t have any comment
+                {error}
             </div>
-            <footer
-                className="Main-footer"
-                style={{
-                    display: (!error && !loading && !analyze) ? 'block' : 'none'
-                }}
-            >
-                <button onClick={moreResult}>View more result</button>
-            </footer>
+
+            <footer className="Main-footer" />
         </>
     );
 };

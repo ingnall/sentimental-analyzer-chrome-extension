@@ -1,15 +1,14 @@
 .App {
-  /* border: solid 1px #5664d2; */
-  width: 500px;
+  width: 400px;
 }
 
 .App-header {
-  background-color: #5664d2;
+  background-color: #47484c;
   height: 40px;
   color: white;
 }
 
-.App-header > div {
-  padding-left: 15px;
-  font-size: x-large;
+.App-header > h1 {
+  padding: 8px 0 0 15px;
+  font-size: 16px;
 }

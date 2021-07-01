@@ -3,7 +3,7 @@
   position: relative;
   align-content: space-around;
   justify-content: center;
-  margin: 2% 0;
+  margin: 15.4% 0;
 }
 .loader-svg {
   position: absolute;
@@ -42,64 +42,70 @@
 }
 
 .container {
-  margin-top: 30px;
+  margin-top: 25px;
 }
 
-.img-positive,
-.img-neutral,
-.img-negative {
-  width: auto;
+.container .card {
+  padding: 15px;
 }
 
-.txt-positive,
-.percentage-positive,
-.txt-neutral,
-.percentage-neutral,
-.txt-negative,
-.percentage-negative {
-  text-align: center;
+h2 {
+  color: #717171;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: system-ui;
+  text-transform: uppercase;
+}
+
+.dot {
+  margin: 6px auto 0;
+  border-radius: 100%;
+  width: 12px;
+  height: 12px;
+}
+
+.dot.positive {
+  background-color: #43a047;
+}
+.dot.neutral {
+  background-color: #fb8c00;
+}
+.dot.negative {
+  background-color: #e53935;
+}
+
+.percentage {
   font-weight: 500;
 }
 
-.img-positive {
-  height: 142px;
-}
-.percentage-positive {
-  color: #43a047;
+.txt {
+  color: #717171;
+  font-size: 14px;
 }
 
-.img-neutral {
-  height: 130px;
-}
-.percentage-neutral {
-  color: #fb8c00;
-}
-
-.img-negative {
-  height: 155px;
-}
-.percentage-negative {
-  color: #e53935;
-}
-
-.Main-footer {
-  background-color: #5664d2;
-  margin-top: 20px;
+.view-more {
+  margin: 20px 0 -15px -15px;
   padding: 5px 0 5px 5px;
-  /* height: 40px; */
   color: white;
 }
 
-.Main-footer button{
+.view-more button {
   background: transparent;
   border: none;
-  color: white;
+  color: black;
   text-transform: capitalize;
-  text-decoration: underline;
-  font-size: large;
+  font-size: 12px;
   font-weight: 600;
 }
 
-.Main-footer button:hover{
-  color: #dee2ff;
+.view-more button:hover {
+  color: #383838;
+  text-decoration: underline;
+}
+
+.Main-footer {
+  background-color: #47484c;
+  margin-top: 20px;
+  width: 100%;
+  height: 3px;
 }
